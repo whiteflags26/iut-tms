@@ -88,6 +88,7 @@ model Route {
   name            String
   startPoint      String
   endPoint        String
+  routeStops      RouteStop[]     // Add this line
   subscriptions   Subscription[]
   trips           Trip[]
   createdAt       DateTime       @default(now())
@@ -289,17 +290,4 @@ model DriverRating {
   updatedAt        DateTime        @updatedAt
 
   @@unique([driverId, userId, date])
-}
-
-// Add RouteStop relation to Route model
-model RouteStop {
-  id              Int            @id @default(autoincrement())
-  routeId         Int
-  route           Route          @relation(fields: [routeId], references: [id])
-  stopName        String
-  sequence        Int
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-
-  @@unique([routeId, sequence])
 }
