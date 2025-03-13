@@ -1,0 +1,305 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int            @id @default(autoincrement())
+  name              String
+  email             String         @unique
+  passwordHash      String
+  designation       String
+  contactNumber     String
+  eWalletBalance    Float          @default(0)
+  role              Role           @default(USER)
+  requisitions      Requisition[]
+  subscriptions     Subscription[]
+  tickets           Ticket[]
+  notifications     Notification[]
+  driverRatings     DriverRating[]
+  approvals         Approval[]
+  reports           Report[]
+  driver            Driver?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+enum Role {
+  USER
+  DRIVER
+  TRANSPORT_OFFICER
+  HOD
+  TRANSPORT_COMMITTEE_CHAIRMAN
+  VC
+  ADMIN
+}
+
+model Requisition {
+  id                 Int        @id @default(autoincrement())
+  userId             Int
+  user               User       @relation(fields: [userId], references: [id])
+  purpose            String
+  placesToVisit      String
+  numberOfPassengers Int
+  dateTimeRequired   DateTime
+  contactPersonNumber String
+  status             RequestStatus @default(PENDING)
+  approvals          Approval[]
+  vehicleId          Int?
+  vehicle            Vehicle?   @relation(fields: [vehicleId], references: [id])
+  driverId           Int?
+  driver             Driver?    @relation(fields: [driverId], references: [id])
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Approval {
+  id              Int            @id @default(autoincrement())
+  requisitionId   Int
+  requisition     Requisition    @relation(fields: [requisitionId], references: [id])
+  approverUserId  Int
+  approverUser    User           @relation(fields: [approverUserId], references: [id])
+  approverRole    Role
+  approvalStatus  RequestStatus  @default(PENDING)
+  approvalDate    DateTime       @default(now())
+  comments        String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Route {
+  id              Int            @id @default(autoincrement())
+  name            String
+  startPoint      String
+  endPoint        String
+  subscriptions   Subscription[]
+  trips           Trip[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model RouteStop {
+  id              Int            @id @default(autoincrement())
+  routeId         Int
+  route           Route          @relation(fields: [routeId], references: [id])
+  stopName        String
+  sequence        Int
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([routeId, sequence])
+}
+
+model Subscription {
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id])
+  routeId         Int
+  route           Route             @relation(fields: [routeId], references: [id])
+  startDate       DateTime
+  endDate         DateTime?
+  monthlyCharge   Float
+  status          SubscriptionStatus @default(ACTIVE)
+  dailyTripStatus DailyTripStatus[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Trip {
+  id               Int               @id @default(autoincrement())
+  routeId          Int
+  route            Route             @relation(fields: [routeId], references: [id])
+  vehicleId        Int
+  vehicle          Vehicle           @relation(fields: [vehicleId], references: [id])
+  driverId         Int
+  driver           Driver            @relation(fields: [driverId], references: [id])
+  scheduledDateTime DateTime
+  availableSeats   Int
+  tickets          Ticket[]
+  dailyTripStatus  DailyTripStatus[]
+  vehicleLocations VehicleLocation[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model DailyTripStatus {
+  id               Int             @id @default(autoincrement())
+  subscriptionId   Int
+  subscription     Subscription    @relation(fields: [subscriptionId], references: [id])
+  tripId           Int
+  trip             Trip            @relation(fields: [tripId], references: [id])
+  date             DateTime
+  status           TripStatus      @default(BOOKED)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum TripStatus {
+  BOOKED
+  CANCELED
+}
+
+model Ticket {
+  id               Int             @id @default(autoincrement())
+  tripId           Int
+  trip             Trip            @relation(fields: [tripId], references: [id])
+  userId           Int
+  user             User            @relation(fields: [userId], references: [id])
+  bookingDateTime  DateTime        @default(now())
+  status           TicketStatus    @default(CONFIRMED)
+  fare             Float
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum TicketStatus {
+  CONFIRMED
+  CANCELED
+}
+
+model Vehicle {
+  id                Int                @id @default(autoincrement())
+  registrationNumber String             @unique
+  type              String
+  capacity          Int
+  status            VehicleStatus      @default(ACTIVE)
+  trips             Trip[]
+  requisitions      Requisition[]
+  vehicleLocations  VehicleLocation[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+enum VehicleStatus {
+  ACTIVE
+  UNDER_MAINTENANCE
+  INACTIVE
+}
+
+model Driver {
+  id               Int             @id @default(autoincrement())
+  userId           Int             @unique
+  user             User            @relation(fields: [userId], references: [id])
+  licenseNumber    String          @unique
+  status           DriverStatus    @default(ACTIVE)
+  trips            Trip[]
+  requisitions     Requisition[]
+  leaveRequests    LeaveRequest[]
+  driverRatings    DriverRating[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum DriverStatus {
+  ACTIVE
+  ON_LEAVE
+  INACTIVE
+}
+
+model LeaveRequest {
+  id              Int             @id @default(autoincrement())
+  driverId        Int
+  driver          Driver          @relation(fields: [driverId], references: [id])
+  startDate       DateTime
+  endDate         DateTime
+  reason          String
+  status          RequestStatus   @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Notification {
+  id               Int               @id @default(autoincrement())
+  recipientUserId  Int
+  recipientUser    User              @relation(fields: [recipientUserId], references: [id])
+  message          String
+  timestamp        DateTime          @default(now())
+  type             String
+  status           NotificationStatus @default(UNREAD)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+enum NotificationStatus {
+  READ
+  UNREAD
+}
+
+model VehicleLocation {
+  id               Int             @id @default(autoincrement())
+  vehicleId        Int
+  vehicle          Vehicle         @relation(fields: [vehicleId], references: [id])
+  tripId           Int
+  trip             Trip            @relation(fields: [tripId], references: [id])
+  timestamp        DateTime        @default(now())
+  latitude         Float
+  longitude        Float
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Report {
+  id               Int             @id @default(autoincrement())
+  generatedById    Int
+  generatedBy      User            @relation(fields: [generatedById], references: [id])
+  reportType       ReportType
+  generatedDate    DateTime        @default(now())
+  content          String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+enum ReportType {
+  USAGE
+  FINANCIAL
+  VEHICLE_HEALTH
+}
+
+model DriverRating {
+  id               Int             @id @default(autoincrement())
+  driverId         Int
+  driver           Driver          @relation(fields: [driverId], references: [id])
+  userId           Int
+  user             User            @relation(fields: [userId], references: [id])
+  rating           Int
+  comment          String?
+  date             DateTime        @default(now())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([driverId, userId, date])
+}
+
+// Add RouteStop relation to Route model
+model RouteStop {
+  id              Int            @id @default(autoincrement())
+  routeId         Int
+  route           Route          @relation(fields: [routeId], references: [id])
+  stopName        String
+  sequence        Int
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([routeId, sequence])
+}
