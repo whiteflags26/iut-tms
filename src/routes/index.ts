@@ -1,13 +1,11 @@
-// import express from 'express';
-// import { register, login, getProfile, updateProfile, getAllUsers } from './controller';
-// import { protect, authorize } from '../../middlewares/authMiddleware';
+import express from 'express';
+import userRoutes from '../modules/user/user.routes';
+const router = express.Router();
 
-// const router = express.Router();
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'API is running' });
+});
 
-// router.post('/register', register);
-// router.post('/login', login);
-// router.get('/profile', protect, getProfile);
-// router.put('/profile', protect, updateProfile);
-// router.get('/', protect, authorize('ADMIN', 'TRANSPORT_OFFICER'), getAllUsers);
+router.use('/users', userRoutes);
 
-// export default router;
+export default router;
