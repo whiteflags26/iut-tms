@@ -1,4 +1,4 @@
-# IUT Turf Management System (TMS)
+# IUT Transport Management System (IUT TMS)
 
 ## Server Configuration
 
@@ -29,7 +29,10 @@ cd iut-tms
 git checkout dev
 
 # Install dependencies
-npm install
+npm i
+
+# Initialize prisma
+npx prisma init
 
 # Run database migrations
 npm run prisma:migrate

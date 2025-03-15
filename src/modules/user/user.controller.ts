@@ -127,3 +127,30 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: error.message });
   }
 };
+
+export const searchUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { search, sortBy, sortOrder, role, designation } = req.query;
+
+    // Convert query parameters to appropriate types
+    const searchQuery = search as string | undefined;
+    const sortByQuery = sortBy as string | undefined;
+    const sortOrderQuery = sortOrder as 'asc' | 'desc' | undefined;
+    const roleQuery = role as Role | undefined;
+    const designationQuery = designation as string | undefined;
+
+    // Fetch users with search, sort, and filter
+    const users = await userService.searchUsers({
+      search: searchQuery,
+      sortBy: sortByQuery,
+      sortOrder: sortOrderQuery,
+      role: roleQuery,
+      designation: designationQuery,
+    });
+
+    // Send response
+    res.status(200).json(users);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

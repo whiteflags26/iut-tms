@@ -142,3 +142,52 @@ export const generateToken = (id: number): string => {
     expiresIn: '5h', // Ensure this is a valid string or number
   });
 };
+
+interface SearchOptions {
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  role?: Role;
+  designation?: string;
+}
+
+export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> => {
+  const { search, sortBy, sortOrder, role, designation } = options;
+
+  const users = await prisma.user.findMany({
+    where: {
+      AND: [
+        search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { designation: { contains: search, mode: 'insensitive' } },
+                { contactNumber: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {},
+        role ? { role } : {},
+        designation ? { designation } : {},
+      ],
+    },
+    orderBy: sortBy
+      ? {
+          [sortBy]: sortOrder || 'asc',
+        }
+      : undefined,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      designation: true,
+      contactNumber: true,
+      role: true,
+      eWalletBalance: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return users;
+};
