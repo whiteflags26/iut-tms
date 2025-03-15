@@ -10,7 +10,8 @@
     "dev": "concurrently \"npx tsc -w \" \"nodemon dist/server.js\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "seed": "npm run build && node dist/seed/index.seed.js"
   },
   "keywords": [],
   "author": "",
