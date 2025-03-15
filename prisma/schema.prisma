@@ -50,6 +50,7 @@ model Requisition {
   user               User       @relation(fields: [userId], references: [id])
   purpose            String
   placesToVisit      String
+  placeToPickup      String    
   numberOfPassengers Int
   dateTimeRequired   DateTime
   contactPersonNumber String

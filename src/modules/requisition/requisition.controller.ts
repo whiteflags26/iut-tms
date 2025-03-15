@@ -20,7 +20,8 @@ export const createRequisition = async (req: Request, res: Response): Promise<vo
 
     const { 
       purpose, 
-      placesToVisit, 
+      placesToVisit,
+      placeToPickup, 
       numberOfPassengers, 
       dateTimeRequired, 
       contactPersonNumber 
@@ -31,6 +32,7 @@ export const createRequisition = async (req: Request, res: Response): Promise<vo
       userId: req.user.id,
       purpose,
       placesToVisit,
+      placeToPickup,
       numberOfPassengers: parseInt(numberOfPassengers),
       dateTimeRequired: new Date(dateTimeRequired),
       contactPersonNumber,
@@ -147,6 +149,7 @@ export const updateRequisition = async (req: Request, res: Response): Promise<vo
     const { 
       purpose, 
       placesToVisit, 
+      placeToPickup,
       numberOfPassengers, 
       dateTimeRequired, 
       contactPersonNumber 
@@ -156,6 +159,7 @@ export const updateRequisition = async (req: Request, res: Response): Promise<vo
     const updatedRequisition = await requisitionService.updateRequisition(id, {
       purpose,
       placesToVisit,
+      placeToPickup,
       numberOfPassengers: numberOfPassengers ? parseInt(numberOfPassengers) : undefined,
       dateTimeRequired: dateTimeRequired ? new Date(dateTimeRequired) : undefined,
       contactPersonNumber,
@@ -210,25 +214,51 @@ export const deleteRequisition = async (req: Request, res: Response): Promise<vo
 
 export const searchRequisitions = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure user is authenticated
-    if (!req.user || !req.user.id) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
-    }
-
-    const { status, startDate, endDate, userId } = req.query;
+    const {
+      userId,
+      purpose,
+      placesToVisit,
+      placeToPickup,
+      numberOfPassengers,
+      minPassengers,
+      maxPassengers,
+      dateTimeRequired,
+      startDate,
+      endDate,
+      contactPersonNumber,
+      sortBy,
+      sortOrder,
+    } = req.query;
 
     // Convert query parameters to appropriate types
-    const statusQuery = status as RequestStatus | undefined;
+    const userIdQuery = userId ? parseInt(userId as string) : undefined;
+    const purposeQuery = purpose as string | undefined;
+    const placesToVisitQuery = placesToVisit as string | undefined;
+    const placeToPickupQuery = placeToPickup as string | undefined;
+    const numberOfPassengersQuery = numberOfPassengers ? parseInt(numberOfPassengers as string) : undefined;
+    const minPassengersQuery = minPassengers ? parseInt(minPassengers as string) : undefined;
+    const maxPassengersQuery = maxPassengers ? parseInt(maxPassengers as string) : undefined;
+    const dateTimeRequiredQuery = dateTimeRequired ? new Date(dateTimeRequired as string) : undefined;
     const startDateQuery = startDate ? new Date(startDate as string) : undefined;
     const endDateQuery = endDate ? new Date(endDate as string) : undefined;
-    const userIdQuery = userId ? parseInt(userId as string) : undefined;
+    const contactPersonNumberQuery = contactPersonNumber as string | undefined;
+    const sortByQuery = sortBy as string | undefined;
+    const sortOrderQuery = sortOrder as 'asc' | 'desc' | undefined;
 
     const requisitions = await requisitionService.searchRequisitions({
-      status: statusQuery,
+      userId: userIdQuery,
+      purpose: purposeQuery,
+      placesToVisit: placesToVisitQuery,
+      placeToPickup: placeToPickupQuery,
+      numberOfPassengers: numberOfPassengersQuery,
+      minPassengers: minPassengersQuery,
+      maxPassengers: maxPassengersQuery,
+      dateTimeRequired: dateTimeRequiredQuery,
       startDate: startDateQuery,
       endDate: endDateQuery,
-      userId: userIdQuery,
+      contactPersonNumber: contactPersonNumberQuery,
+      sortBy: sortByQuery,
+      sortOrder: sortOrderQuery,
     });
 
     res.status(200).json(requisitions);
