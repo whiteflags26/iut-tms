@@ -191,3 +191,19 @@ export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> =
 
   return users;
 };
+
+export const changeUserPassword = async (
+  userId: number, 
+  newPassword: string
+): Promise<void> => {
+  // Hash the password before storing
+  const hashedPassword = await bcrypt.hash(newPassword, config.bcrypt.saltRounds);
+  
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hashedPassword },
+    select: { name: true },
+  });
+  
+  // Return void since we don't need to expose password-related fields
+};
