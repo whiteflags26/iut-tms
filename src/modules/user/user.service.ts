@@ -207,3 +207,23 @@ export const changeUserPassword = async (
   
   // Return void since we don't need to expose password-related fields
 };
+
+export const changeUserRole = async (id: number, userRole: Role): Promise<SafeUser> => {
+  const user = await prisma.user.update({
+    where: { id },
+    data: { role: userRole },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      designation: true,
+      contactNumber: true,
+      role: true,
+      eWalletBalance: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return user;
+};
