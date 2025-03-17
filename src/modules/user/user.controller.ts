@@ -78,9 +78,13 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
       res.status(401).json({ message: 'User not authenticated' });
       return;
     }
-
+    
     // Fetch user profile
-    const user = await userService.getUserById(req.user.id);
+    const user = await userService.getUserById(Number(req.params.id));
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
 
     // Send response
     res.status(200).json(user);

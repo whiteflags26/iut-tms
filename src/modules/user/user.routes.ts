@@ -33,11 +33,13 @@ const passwordValidation = [
 // Routes
 router.post('/register', registerValidation, userController.register);
 router.post('/login', loginValidation, userController.login);
-router.get('/profile', authenticate, userController.getProfile);
-router.put('/profile', authenticate, userController.updateProfile);
+
 router.get('/', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getAllUsers);
 router.get('/search', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.searchUsers);
 router.patch('/:id/change-role', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.changeRole);
+
+router.get('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getProfile);
+router.put('/profile', authenticate, userController.updateProfile);
 router.patch('/:id/change-password', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), passwordValidation, userController.changePassword);
 /**
  * Endpoint: /search
