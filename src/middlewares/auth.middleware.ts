@@ -90,3 +90,23 @@ export const authorize = (...roles: Role[]) => {
     next(); // Proceed to the next middleware or route handler
   };
 };
+
+
+export const validateUserAccess = (...roles: Role[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return; // Ensure the function exits after sending the response
+    }
+
+    console.log(req.params);
+    if (!roles.includes(req.user.role) && req.user.id !== Number(req.params.id)) {
+      res.status(403).json({
+        message: `Access denied: ${req.user.role} role is not authorized for this resource`,
+      });
+      return; // Ensure the function exits after sending the response
+    }
+
+    next(); // Proceed to the next middleware or route handler
+  };
+};

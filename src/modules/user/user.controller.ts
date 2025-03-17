@@ -78,9 +78,13 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
       res.status(401).json({ message: 'User not authenticated' });
       return;
     }
-
+    
     // Fetch user profile
-    const user = await userService.getUserById(req.user.id);
+    const user = await userService.getUserById(Number(req.params.id));
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
 
     // Send response
     res.status(200).json(user);
@@ -99,8 +103,15 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     const { name, contactNumber, designation } = req.body;
 
+    // Fetch user profile
+    const user = await userService.getUserById(Number(req.params.id));
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
     // Update user profile
-    const updatedUser = await userService.updateUser(req.user.id, {
+    const updatedUser = await userService.updateUser(Number(req.params.id), {
       name,
       contactNumber,
       designation,
@@ -152,5 +163,65 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
     res.status(200).json(users);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Ensure req.user exists (already checked by authenticate middleware)
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: 'User not authenticated' });
+      return;
+    }
+    // Check if user exists
+    if ((req.user.role === "ADMIN" || req.user.role === "TRANSPORT_OFFICER") && Number(req.params.id) !== req.user.id) {
+      const user = await userService.getUserById(Number(req.params.id));
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+    }
+    const { password } = req.body;
+
+    // Update user password
+    await userService.changeUserPassword(Number(req.params.id), password);
+
+    // Send response
+    res.status(200).json({
+      message: 'Password updated successfully -- add username to response',
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+//edit
+export const changeRole = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Ensure req.user exists (already checked by authenticate middleware)
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: 'User not authenticated' });
+      return;
+    }
+
+    // Check if user exists
+    const user = await userService.getUserById(Number(req.params.id));
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+    
+
+    const { role } = req.body;
+
+    // Update user role
+    const userData = await userService.changeUserRole(Number(req.params.id), role as Role);
+
+    // Send response
+    res.status(200).json({
+      message: 'Role updated successfully',
+      user: userData,
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
   }
 };
