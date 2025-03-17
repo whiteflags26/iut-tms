@@ -103,8 +103,15 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     const { name, contactNumber, designation } = req.body;
 
+    // Fetch user profile
+    const user = await userService.getUserById(Number(req.params.id));
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
     // Update user profile
-    const updatedUser = await userService.updateUser(req.user.id, {
+    const updatedUser = await userService.updateUser(Number(req.params.id), {
       name,
       contactNumber,
       designation,

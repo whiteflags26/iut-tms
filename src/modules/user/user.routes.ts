@@ -39,7 +39,7 @@ router.get('/search', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER
 router.patch('/:id/change-role', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.changeRole);
 
 router.get('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getProfile);
-router.put('/profile', authenticate, userController.updateProfile);
+router.put('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.updateProfile);
 router.patch('/:id/change-password', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), passwordValidation, userController.changePassword);
 /**
  * Endpoint: /search
