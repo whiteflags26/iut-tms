@@ -156,6 +156,7 @@ export const deleteApproval = async (id: number): Promise<Approval> => {
 export const processApproval = async (
   approvalId: number,
   status: RequestStatus,
+  userRole: Role,
   comments?: string
 ): Promise<void> => {
   // Get the approval
@@ -166,6 +167,10 @@ export const processApproval = async (
 
   if (!approval) {
     throw new NotFoundError('Approval not found');
+  }
+
+  if(userRole !== approval.approverRole) {
+    throw new Error('User is not authorized to process this approval');
   }
 
   // Update the approval status

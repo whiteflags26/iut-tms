@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as approvalService from './approval.service';
 import { NotFoundError } from '../../utils/errors';
+import { U } from '@faker-js/faker/dist/airline-CBNP41sR';
 
 export const processApproval = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -13,13 +14,15 @@ export const processApproval = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    if(req.user?.role !== req.params.role) {
-      res.status(403).json({ message: 'Unauthorized' });
+    if(!req.user){
+      res.status(401).json({ message: 'User not authenticated' });
       return;
     }
 
+    const role = req.user.role;
+
     // Update the approval status using the approval service
-    await approvalService.processApproval(approvalId, status, comments);
+    await approvalService.processApproval(approvalId, status, role, comments);
 
     // Send response
     res.status(200).json({
