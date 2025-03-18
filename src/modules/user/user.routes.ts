@@ -21,7 +21,8 @@ const registerValidation = [
 const loginValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').exists().withMessage('Password field is required')
-  .notEmpty().withMessage('Password cannot be empty'),
+  .notEmpty().withMessage('Password cannot be empty')
+  .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ];
 
 const passwordValidation = [
