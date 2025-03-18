@@ -46,6 +46,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Validate request body
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
     const { email, password } = req.body;
 
     // Authenticate user
@@ -168,6 +175,13 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
 
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Validate request body
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    
     // Ensure req.user exists (already checked by authenticate middleware)
     if (!req.user || !req.user.id) {
       res.status(401).json({ message: 'User not authenticated' });
