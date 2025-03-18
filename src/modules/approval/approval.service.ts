@@ -169,7 +169,7 @@ export const processApproval = async (
     throw new NotFoundError('Approval not found');
   }
 
-  if(userRole !== approval.approverRole) {
+  if(userRole !== Role.ADMIN && userRole !== approval.approverRole) {
     throw new Error('User is not authorized to process this approval');
   }
 
