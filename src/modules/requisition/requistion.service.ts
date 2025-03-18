@@ -1,7 +1,6 @@
 import { PrismaClient, Requisition, RequestStatus, Role, Department } from '@prisma/client';
 import { NotFoundError } from '../../utils/errors';
 import * as approvalService from '../approval/approval.service';
-import { Console } from 'console';
 
 const prisma = new PrismaClient();
 
