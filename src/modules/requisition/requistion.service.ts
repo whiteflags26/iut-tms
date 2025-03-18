@@ -1,6 +1,7 @@
-import { PrismaClient, Requisition, RequestStatus, Role } from '@prisma/client';
+import { PrismaClient, Requisition, RequestStatus, Role, Department } from '@prisma/client';
 import { NotFoundError } from '../../utils/errors';
 import * as approvalService from '../approval/approval.service';
+import { Console } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -129,8 +130,23 @@ export const getRequisitionsByUserId = async (userId: number): Promise<Requisiti
   });
 };
 
-export const getAllRequisitions = async (): Promise<Requisition[]> => {
+export const getAllRequisitions = async (
+  userRole: Role,
+  userDepartment?: Department
+): Promise<Requisition[]> => {
+  const where: any = {};
+
+  // If the user is HOD, filter requisitions by department
+  if (userRole === Role.HOD && userDepartment) {
+    where.user = {
+      department: userDepartment,
+    };
+  }
+ console.log(userDepartment);
+ console.log(userRole);
+  
   return await prisma.requisition.findMany({
+    where,
     include: {
       user: {
         select: {
@@ -139,6 +155,7 @@ export const getAllRequisitions = async (): Promise<Requisition[]> => {
           email: true,
           designation: true,
           role: true,
+          department: true, 
         },
       },
       approvals: {
@@ -237,21 +254,25 @@ export const deleteRequisition = async (id: number): Promise<Requisition> => {
   });
 };
 
-export const searchRequisitions = async (options: {
-  userId?: number;
-  purpose?: string;
-  placesToVisit?: string;
-  placeToPickup?: string;
-  numberOfPassengers?: number;
-  minPassengers?: number; 
-  maxPassengers?: number; 
-  dateTimeRequired?: Date;
-  startDate?: Date; 
-  endDate?: Date; 
-  contactPersonNumber?: string;
-  sortBy?: string; 
-  sortOrder?: 'asc' | 'desc'; 
-}): Promise<Requisition[]> => {
+export const searchRequisitions = async (
+  options: {
+    userId?: number;
+    purpose?: string;
+    placesToVisit?: string;
+    placeToPickup?: string;
+    numberOfPassengers?: number;
+    minPassengers?: number;
+    maxPassengers?: number;
+    dateTimeRequired?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    contactPersonNumber?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  },
+  userRole: Role,
+  userDepartment?: Department
+): Promise<Requisition[]> => {
   const {
     userId,
     purpose,
@@ -269,6 +290,13 @@ export const searchRequisitions = async (options: {
   } = options;
 
   const where: any = {};
+
+  // If the user is HOD, filter requisitions by department
+  if (userRole === Role.HOD && userDepartment) {
+    where.user = {
+      department: userDepartment,
+    };
+  }
 
   // Filter by userId
   if (userId) {
@@ -358,6 +386,7 @@ export const searchRequisitions = async (options: {
           name: true,
           email: true,
           designation: true,
+          department: true, // Include department in the response
         },
       },
       approvals: {

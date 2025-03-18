@@ -13,6 +13,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Department {
+  CSE
+  EEE
+  CEE
+  MPE
+  GENERAL
+}
+
 model User {
   id                Int            @id @default(autoincrement())
   name              String
@@ -22,6 +30,7 @@ model User {
   contactNumber     String
   eWalletBalance    Float          @default(0)
   role              Role           @default(USER)
+  department        Department     @default(GENERAL)
   requisitions      Requisition[]
   subscriptions     Subscription[]
   tickets           Ticket[]

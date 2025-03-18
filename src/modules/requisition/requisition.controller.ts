@@ -97,19 +97,13 @@ export const getMyRequisitions = async (req: Request, res: Response): Promise<vo
 
 export const getAllRequisitions = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure user is authenticated and has permission
+    // Ensure user is authenticated
     if (!req.user || !req.user.id) {
       res.status(401).json({ message: 'User not authenticated' });
       return;
     }
 
-    // Only ADMIN or TRANSPORT_OFFICER can view all requisitions
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'TRANSPORT_OFFICER') {
-      res.status(403).json({ message: 'Forbidden - You do not have permission to view all requisitions' });
-      return;
-    }
-
-    const requisitions = await requisitionService.getAllRequisitions();
+    const requisitions = await requisitionService.getAllRequisitions(req.user.role, req.user.department);
     res.status(200).json(requisitions);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -230,36 +224,31 @@ export const searchRequisitions = async (req: Request, res: Response): Promise<v
       sortOrder,
     } = req.query;
 
-    // Convert query parameters to appropriate types
-    const userIdQuery = userId ? parseInt(userId as string) : undefined;
-    const purposeQuery = purpose as string | undefined;
-    const placesToVisitQuery = placesToVisit as string | undefined;
-    const placeToPickupQuery = placeToPickup as string | undefined;
-    const numberOfPassengersQuery = numberOfPassengers ? parseInt(numberOfPassengers as string) : undefined;
-    const minPassengersQuery = minPassengers ? parseInt(minPassengers as string) : undefined;
-    const maxPassengersQuery = maxPassengers ? parseInt(maxPassengers as string) : undefined;
-    const dateTimeRequiredQuery = dateTimeRequired ? new Date(dateTimeRequired as string) : undefined;
-    const startDateQuery = startDate ? new Date(startDate as string) : undefined;
-    const endDateQuery = endDate ? new Date(endDate as string) : undefined;
-    const contactPersonNumberQuery = contactPersonNumber as string | undefined;
-    const sortByQuery = sortBy as string | undefined;
-    const sortOrderQuery = sortOrder as 'asc' | 'desc' | undefined;
+    // Ensure user is authenticated
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ message: 'User not authenticated' });
+      return;
+    }
 
-    const requisitions = await requisitionService.searchRequisitions({
-      userId: userIdQuery,
-      purpose: purposeQuery,
-      placesToVisit: placesToVisitQuery,
-      placeToPickup: placeToPickupQuery,
-      numberOfPassengers: numberOfPassengersQuery,
-      minPassengers: minPassengersQuery,
-      maxPassengers: maxPassengersQuery,
-      dateTimeRequired: dateTimeRequiredQuery,
-      startDate: startDateQuery,
-      endDate: endDateQuery,
-      contactPersonNumber: contactPersonNumberQuery,
-      sortBy: sortByQuery,
-      sortOrder: sortOrderQuery,
-    });
+    const requisitions = await requisitionService.searchRequisitions(
+      {
+        userId: userId ? parseInt(userId as string) : undefined,
+        purpose: purpose as string | undefined,
+        placesToVisit: placesToVisit as string | undefined,
+        placeToPickup: placeToPickup as string | undefined,
+        numberOfPassengers: numberOfPassengers ? parseInt(numberOfPassengers as string) : undefined,
+        minPassengers: minPassengers ? parseInt(minPassengers as string) : undefined,
+        maxPassengers: maxPassengers ? parseInt(maxPassengers as string) : undefined,
+        dateTimeRequired: dateTimeRequired ? new Date(dateTimeRequired as string) : undefined,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        contactPersonNumber: contactPersonNumber as string | undefined,
+        sortBy: sortBy as string | undefined,
+        sortOrder: sortOrder as 'asc' | 'desc' | undefined,
+      },
+      req.user.role,
+      req.user.department
+    );
 
     res.status(200).json(requisitions);
   } catch (error: any) {

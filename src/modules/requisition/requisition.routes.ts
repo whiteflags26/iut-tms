@@ -50,11 +50,11 @@ const assignValidation = [
 // Routes
 router.post('/', authenticate, requisitionValidation, requisitionController.createRequisition);
 router.get('/my-requisitions', authenticate, requisitionController.getMyRequisitions);
-router.get('/all', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), requisitionController.getAllRequisitions);
+router.get('/all', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER, Role.HOD), requisitionController.getAllRequisitions);
 router.get('/:id', authenticate, requisitionController.getRequisitionById);
 router.put('/:id', authenticate, updateValidation, requisitionController.updateRequisition);
 router.delete('/:id', authenticate, requisitionController.deleteRequisition);
 router.post('/:id/assign', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), assignValidation, requisitionController.assignVehicleAndDriver);
-router.get('/search/query', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), requisitionController.searchRequisitions);
+router.get('/search/query', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER, Role.HOD), requisitionController.searchRequisitions);
 
 export default router;
