@@ -1,5 +1,6 @@
 import { PrismaClient, Requisition, RequestStatus, Role } from '@prisma/client';
 import { NotFoundError } from '../../utils/errors';
+import * as approvalService from '../approval/approval.service';
 
 const prisma = new PrismaClient();
 
@@ -38,6 +39,14 @@ export const createRequisition = async (data: RequisitionInput): Promise<Requisi
       status: RequestStatus.PENDING,
     },
   });
+
+  await approvalService.createApproval({
+      requisitionId: requisition.id,
+      approverUserId: requisition.userId,
+      approverRole: Role.HOD,
+      comments: 'Approval for HOD',
+    });
+
   return requisition;
 };
 
