@@ -55,6 +55,6 @@ router.get('/:id', authenticate, requisitionController.getRequisitionById);
 router.put('/:id', authenticate, updateValidation, requisitionController.updateRequisition);
 router.delete('/:id', authenticate, requisitionController.deleteRequisition);
 router.post('/:id/assign', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), assignValidation, requisitionController.assignVehicleAndDriver);
-router.get('/search/query', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER, Role.USER), requisitionController.searchRequisitions);
+router.get('/search/query', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), requisitionController.searchRequisitions);
 
 export default router;

@@ -217,13 +217,11 @@ export const processApproval = async (
 };
 
 export const getPendingApprovalsForUser = async (
-  userId: number,
-  userRole: Role
+  userId: number
 ): Promise<any[]> => {
   return await prisma.approval.findMany({
     where: {
       approverUserId: userId,
-      approverRole: userRole,
       approvalStatus: RequestStatus.PENDING,
     },
     include: {

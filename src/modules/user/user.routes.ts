@@ -41,7 +41,7 @@ router.patch('/:id/change-role', authenticate, authorize(Role.ADMIN, Role.TRANSP
 
 router.get('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getProfile);
 router.put('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.updateProfile);
-router.patch('/:id/change-password', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), passwordValidation, userController.changePassword);
+router.patch('/:id/change-password', authenticate, passwordValidation, userController.changePassword);
 /**
  * Endpoint: /search
  * Method: GET

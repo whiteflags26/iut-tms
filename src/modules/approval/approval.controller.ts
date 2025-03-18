@@ -47,8 +47,7 @@ export const getPendingApprovalsForUser = async (req: Request, res: Response): P
 
     // Get pending approvals for the logged-in user based on their role
     const pendingApprovals = await approvalService.getPendingApprovalsForUser(
-      req.user.id,
-      req.user.role
+      req.user.id
     );
 
     res.status(200).json(pendingApprovals);

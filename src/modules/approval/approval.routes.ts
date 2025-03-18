@@ -8,8 +8,8 @@ const router = express.Router();
 // Routes for approval management
 router.post('/:approvalId/process', authenticate, approvalController.processApproval);
 router.get('/pending', authenticate, approvalController.getPendingApprovalsForUser);
-router.get('/:id', authenticate, approvalController.getApprovalById);
-router.post('/', authenticate, approvalController.createApproval);
-router.delete('/:id', authenticate, authorize(Role.ADMIN), approvalController.deleteApproval);
+router.get('/:id', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), approvalController.getApprovalById);
+router.post('/', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), approvalController.createApproval);
+router.delete('/:id', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), approvalController.deleteApproval);
 
 export default router;
