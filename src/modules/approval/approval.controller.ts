@@ -13,6 +13,11 @@ export const processApproval = async (req: Request, res: Response): Promise<void
       return;
     }
 
+    if(req.user?.role !== req.params.role) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
     // Update the approval status using the approval service
     await approvalService.processApproval(approvalId, status, comments);
 

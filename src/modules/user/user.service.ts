@@ -208,7 +208,14 @@ export const changeUserPassword = async (
   // Return void since we don't need to expose password-related fields
 };
 
+const isValidEnum = (value: string): value is Role => {
+  return Object.values(Role).includes(value as Role);
+};
+
 export const changeUserRole = async (id: number, userRole: Role): Promise<SafeUser> => {
+  if(!isValidEnum(userRole)) {
+    throw new Error('Invalid role');
+  }
   const user = await prisma.user.update({
     where: { id },
     data: { role: userRole },

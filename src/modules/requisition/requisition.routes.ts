@@ -10,6 +10,7 @@ const router = express.Router();
 const requisitionValidation = [
   body('purpose').notEmpty().withMessage('Purpose is required'),
   body('placesToVisit').notEmpty().withMessage('Places to visit is required'),
+  body('placeToPickup').notEmpty().withMessage('Place to pickup is required'), 
   body('numberOfPassengers')
     .isInt({ min: 1 })
     .withMessage('Number of passengers must be a positive integer'),
@@ -25,6 +26,7 @@ const requisitionValidation = [
 const updateValidation = [
   body('purpose').optional().notEmpty().withMessage('Purpose cannot be empty'),
   body('placesToVisit').optional().notEmpty().withMessage('Places to visit cannot be empty'),
+  body('placeToPickup').optional().notEmpty().withMessage('Place to pickup cannot be empty'), // New field
   body('numberOfPassengers')
     .optional()
     .isInt({ min: 1 })

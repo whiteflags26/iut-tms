@@ -1,5 +1,6 @@
 import { PrismaClient, Requisition, RequestStatus, Role } from '@prisma/client';
 import { NotFoundError } from '../../utils/errors';
+import * as approvalService from '../approval/approval.service';
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,7 @@ interface RequisitionInput {
   userId: number;
   purpose: string;
   placesToVisit: string;
+  placeToPickup: string;
   numberOfPassengers: number;
   dateTimeRequired: Date;
   contactPersonNumber: string;
@@ -15,6 +17,7 @@ interface RequisitionInput {
 interface RequisitionUpdateInput {
   purpose?: string;
   placesToVisit?: string;
+  placeToPickup?: string;
   numberOfPassengers?: number;
   dateTimeRequired?: Date;
   contactPersonNumber?: string;
@@ -24,21 +27,12 @@ interface RequisitionUpdateInput {
 }
 
 export const createRequisition = async (data: RequisitionInput): Promise<Requisition> => {
-  // Check if user exists
-  const user = await prisma.user.findUnique({
-    where: { id: data.userId },
-  });
-
-  if (!user) {
-    throw new NotFoundError('User not found');
-  }
-
-  // Create the requisition
   const requisition = await prisma.requisition.create({
     data: {
       userId: data.userId,
       purpose: data.purpose,
       placesToVisit: data.placesToVisit,
+      placeToPickup: data.placeToPickup, 
       numberOfPassengers: data.numberOfPassengers,
       dateTimeRequired: data.dateTimeRequired,
       contactPersonNumber: data.contactPersonNumber,
@@ -46,15 +40,12 @@ export const createRequisition = async (data: RequisitionInput): Promise<Requisi
     },
   });
 
-  // Create initial approval for HOD
-  await prisma.approval.create({
-    data: {
+  await approvalService.createApproval({
       requisitionId: requisition.id,
-      approverUserId: data.userId, // Replace with actual HOD's ID in a real scenario
+      approverUserId: requisition.userId,
       approverRole: Role.HOD,
-      approvalStatus: RequestStatus.PENDING,
-    },
-  });
+      comments: 'Approval for HOD',
+    });
 
   return requisition;
 };
@@ -197,7 +188,17 @@ export const updateRequisition = async (
 
   return await prisma.requisition.update({
     where: { id },
-    data,
+    data: {
+      purpose: data.purpose,
+      placesToVisit: data.placesToVisit,
+      placeToPickup: data.placeToPickup,
+      numberOfPassengers: data.numberOfPassengers,
+      dateTimeRequired: data.dateTimeRequired,
+      contactPersonNumber: data.contactPersonNumber,
+      status: data.status,
+      vehicleId: data.vehicleId,
+      driverId: data.driverId,
+    },
     include: {
       approvals: true,
       vehicle: true,
@@ -237,19 +238,89 @@ export const deleteRequisition = async (id: number): Promise<Requisition> => {
 };
 
 export const searchRequisitions = async (options: {
-  status?: RequestStatus;
-  startDate?: Date;
-  endDate?: Date;
   userId?: number;
+  purpose?: string;
+  placesToVisit?: string;
+  placeToPickup?: string;
+  numberOfPassengers?: number;
+  minPassengers?: number; 
+  maxPassengers?: number; 
+  dateTimeRequired?: Date;
+  startDate?: Date; 
+  endDate?: Date; 
+  contactPersonNumber?: string;
+  sortBy?: string; 
+  sortOrder?: 'asc' | 'desc'; 
 }): Promise<Requisition[]> => {
-  const { status, startDate, endDate, userId } = options;
+  const {
+    userId,
+    purpose,
+    placesToVisit,
+    placeToPickup,
+    numberOfPassengers,
+    minPassengers,
+    maxPassengers,
+    dateTimeRequired,
+    startDate,
+    endDate,
+    contactPersonNumber,
+    sortBy,
+    sortOrder,
+  } = options;
 
   const where: any = {};
 
-  if (status) {
-    where.status = status;
+  // Filter by userId
+  if (userId) {
+    where.userId = userId;
   }
 
+  // Filter by purpose (case-insensitive search)
+  if (purpose) {
+    where.purpose = {
+      contains: purpose,
+      mode: 'insensitive',
+    };
+  }
+
+  // Filter by placesToVisit (case-insensitive search)
+  if (placesToVisit) {
+    where.placesToVisit = {
+      contains: placesToVisit,
+      mode: 'insensitive',
+    };
+  }
+
+  // Filter by placeToPickup (case-insensitive search)
+  if (placeToPickup) {
+    where.placeToPickup = {
+      contains: placeToPickup,
+      mode: 'insensitive',
+    };
+  }
+
+  // Filter by numberOfPassengers (exact match)
+  if (numberOfPassengers) {
+    where.numberOfPassengers = numberOfPassengers;
+  }
+
+  // Filter by passenger range (minPassengers and maxPassengers)
+  if (minPassengers !== undefined || maxPassengers !== undefined) {
+    where.numberOfPassengers = {};
+    if (minPassengers !== undefined) {
+      where.numberOfPassengers.gte = minPassengers;
+    }
+    if (maxPassengers !== undefined) {
+      where.numberOfPassengers.lte = maxPassengers;
+    }
+  }
+
+  // Filter by dateTimeRequired (exact match)
+  if (dateTimeRequired) {
+    where.dateTimeRequired = dateTimeRequired;
+  }
+
+  // Filter by date range (startDate and endDate)
   if (startDate && endDate) {
     where.dateTimeRequired = {
       gte: startDate,
@@ -265,8 +336,17 @@ export const searchRequisitions = async (options: {
     };
   }
 
-  if (userId) {
-    where.userId = userId;
+  // Filter by contactPersonNumber (case-insensitive search)
+  if (contactPersonNumber) {
+    where.contactPersonNumber = {
+      contains: contactPersonNumber,
+      mode: 'insensitive',
+    };
+  }
+
+  const orderBy: any = {};
+  if (sortBy && sortOrder) {
+    orderBy[sortBy] = sortOrder;
   }
 
   return await prisma.requisition.findMany({
@@ -304,9 +384,7 @@ export const searchRequisitions = async (options: {
         },
       },
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy,
   });
 };
 
