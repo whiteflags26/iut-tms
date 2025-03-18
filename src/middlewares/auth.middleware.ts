@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { PrismaClient, User, Role } from '@prisma/client';
+import { PrismaClient, User, Role, Department } from '@prisma/client';
 import config from '../config/auth.config';
 
 const prisma = new PrismaClient();
@@ -12,6 +12,7 @@ export interface UserPayload {
   name: string;
   email: string;
   role: Role;
+  department: Department;
   designation: string;
 }
 
@@ -41,6 +42,7 @@ export const initializePassport = (): void => {
             email: true,
             role: true,
             designation: true,
+            department: true,
           },
         });
 
