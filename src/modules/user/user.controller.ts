@@ -207,11 +207,13 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     // Update user password
     await userService.changeUserPassword(Number(req.params.id), password);
 
-    sendEmail(req.user.email, "Password Updated", "Your password has been updated successfully.");
+    const user = await userService.getUserById(Number(req.params.id));
+
+    sendEmail(user.email, "Password Updated", "Your password has been updated successfully.");
 
     // Send response
     res.status(200).json({
-      message: 'Password updated successfully -- add username to response',
+      message: `Password updated successfully for ${user.name}`,
     });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
