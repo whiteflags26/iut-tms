@@ -1,5 +1,6 @@
-import { PrismaClient, Approval, RequestStatus, Role } from '@prisma/client';
+import { PrismaClient, Approval, RequestStatus, Role, Department } from '@prisma/client';
 import { NotFoundError } from '../../utils/errors';
+import { D } from '@faker-js/faker/dist/airline-CBNP41sR';
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,7 @@ interface ApprovalInput {
   requisitionId: number;
   approverUserId: number;
   approverRole: Role;
+  approverDepartment?: Department;
   comments?: string;
 }
 
@@ -22,6 +24,7 @@ export const getApprovalById = async (id: number): Promise<Approval> => {
           email: true,
           designation: true,
           role: true,
+          department: true,
         },
       },
     },
@@ -100,6 +103,7 @@ export const getApprovalsByRequisitionId = async (requisitionId: number): Promis
           email: true,
           designation: true,
           role: true,
+          department: true,
         },
       },
     },
@@ -128,6 +132,7 @@ export const getPendingApprovalsByUserRole = async (
               name: true,
               email: true,
               designation: true,
+              department: true,
             },
           },
         },
@@ -233,6 +238,7 @@ export const getPendingApprovalsForUser = async (
               name: true,
               email: true,
               designation: true,
+              department: true,
             },
           },
         },
