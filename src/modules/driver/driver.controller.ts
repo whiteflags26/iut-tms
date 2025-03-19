@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import * as driverService from '../driver/driver.service';
 import { validationResult } from 'express-validator';
 import { BadRequestError, NotFoundError } from '../../utils/errors';
+import * as userService from '../user/user.service';
+import { sendEmail } from '../../utils/mailer';  
+
 
 export const createDriver = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -16,6 +19,9 @@ export const createDriver = async (req: Request, res: Response): Promise<void> =
 
     // Create driver
     const driver = await driverService.createDriver({ userId, licenseNumber, status });
+    const user = await userService.getUserById(userId);
+
+    sendEmail(user.email, "Welcome to Transport Management System", "You have successfully registered as a driver in Transport Management System. Your account is now active. You can now login to the system using your email and password. Thank you for registering with us.");
 
     // Send response
     res.status(201).json({

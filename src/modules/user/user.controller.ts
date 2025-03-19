@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import * as userService from './user.service';
 import { validationResult } from 'express-validator';
+import { sendEmail } from '../../utils/mailer';  
 import { Role } from '@prisma/client';
+import { send } from 'node:process';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -26,6 +28,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Generate token
     const token = userService.generateToken(user.id);
+    sendEmail(email, "Welcome to Transport Management System", "You have successfully registered to Transport Management System. Your account is now active. You can now login to the system using your email and password. Thank you for registering with us.");
 
     // Send response
     res.status(201).json({
@@ -200,6 +203,8 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     // Update user password
     await userService.changeUserPassword(Number(req.params.id), password);
 
+    sendEmail(req.user.email, "Password Updated", "Your password has been updated successfully.");
+
     // Send response
     res.status(200).json({
       message: 'Password updated successfully -- add username to response',
@@ -229,6 +234,8 @@ export const changeRole = async (req: Request, res: Response): Promise<void> => 
 
     // Update user role
     const userData = await userService.changeUserRole(Number(req.params.id), role as Role);
+
+    sendEmail(user.email, "Role Updated", `You have been updated successfully to ${role}.`);
 
     // Send response
     res.status(200).json({

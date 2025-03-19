@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Function to send an email
-export const sendEmail = async (to: string, text: string): Promise<void> => {
+export const sendEmail = async (to: string, subject: string, text: string): Promise<void> => {
     if (process.env.EMAIL_USER === undefined || process.env.EMAIL_PASS === undefined) {
         throw new Error('Email credentials not provided');
     }
@@ -25,7 +25,7 @@ export const sendEmail = async (to: string, text: string): Promise<void> => {
     const mailOptions: MailOptions = {
         from: process.env.EMAIL_USER, // Sender address
         to, // List of recipients
-        subject: 'IUT TMS', // Subject line
+        subject, // Subject line
         text, // Plain text body
     };
 
