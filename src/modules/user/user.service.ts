@@ -88,6 +88,7 @@ export const getUserById = async (id: number): Promise<SafeUser> => {
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -112,6 +113,7 @@ export const updateUser = async (id: number, userData: UserUpdateInput): Promise
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -130,6 +132,7 @@ export const getAllUsers = async (): Promise<SafeUser[]> => {
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -151,10 +154,11 @@ interface SearchOptions {
   sortOrder?: 'asc' | 'desc';
   role?: Role;
   designation?: string;
+  department?: Department;
 }
 
 export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> => {
-  const { search, sortBy, sortOrder, role, designation } = options;
+  const { search, sortBy, sortOrder, role, designation, department } = options;
 
   const users = await prisma.user.findMany({
     where: {
@@ -171,6 +175,7 @@ export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> =
           : {},
         role ? { role } : {},
         designation ? { designation } : {},
+        department ? { department } : {},
       ],
     },
     orderBy: sortBy
@@ -183,6 +188,7 @@ export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> =
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -226,6 +232,7 @@ export const changeUserRole = async (id: number, userRole: Role): Promise<SafeUs
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,

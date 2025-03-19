@@ -74,6 +74,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         role: user.role,
         designation: user.designation,
+        department: user.department,
       },
       token,
     });
@@ -152,13 +153,14 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
 
 export const searchUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { search, sortBy, sortOrder, role, designation } = req.query;
+    const { search, sortBy, sortOrder, role, designation, department } = req.query;
 
     // Convert query parameters to appropriate types
     const searchQuery = search as string | undefined;
     const sortByQuery = sortBy as string | undefined;
     const sortOrderQuery = sortOrder as 'asc' | 'desc' | undefined;
     const roleQuery = role as Role | undefined;
+    const departmentQuery = department as Department | undefined;
     const designationQuery = designation as string | undefined;
 
     // Fetch users with search, sort, and filter
@@ -168,6 +170,7 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
       sortOrder: sortOrderQuery,
       role: roleQuery,
       designation: designationQuery,
+      department: departmentQuery,
     });
 
     // Send response
