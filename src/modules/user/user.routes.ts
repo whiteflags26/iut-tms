@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import * as userController from './user.controller';
-import { authenticate, authorize } from '../../middlewares/auth.middleware';
+import { authenticate, authorize, validateUserAccess } from '../../middlewares/auth.middleware';
 import { Role } from '@prisma/client';
 
 const router = express.Router();
@@ -20,16 +20,28 @@ const registerValidation = [
 // Login validation
 const loginValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required'),
+  body('password').exists().withMessage('Password field is required')
+  .notEmpty().withMessage('Password cannot be empty')
+  .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ];
+
+const passwordValidation = [
+  body('password').exists().withMessage('Password field is required')
+  .notEmpty().withMessage('Password cannot be empty')
+  .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+]
 
 // Routes
 router.post('/register', registerValidation, userController.register);
 router.post('/login', loginValidation, userController.login);
-router.get('/profile', authenticate, userController.getProfile);
-router.put('/profile', authenticate, userController.updateProfile);
+
 router.get('/', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getAllUsers);
 router.get('/search', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.searchUsers);
+router.patch('/:id/change-role', authenticate, authorize(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.changeRole);
+
+router.get('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.getProfile);
+router.put('/:id/profile', authenticate, validateUserAccess(Role.ADMIN, Role.TRANSPORT_OFFICER), userController.updateProfile);
+router.patch('/:id/change-password', authenticate, passwordValidation, userController.changePassword);
 /**
  * Endpoint: /search
  * Method: GET

@@ -1,14 +1,14 @@
-import { PrismaClient } from '@prisma/client';
-import seedUsers from './user.seed';
+import seedDatabase from './component.seed';
 
-const prisma = new PrismaClient();
+const seedParams = {
+  numberOfUsers: 20,
+  numberOfRequisitions: 50,
+  numberOfVehicles: 10,
+  numberOfDrivers: 5,
+  numberOfApprovals: 30,
+};
 
-const numberOfUsers = 20; // Number of fake users to create
-
-seedUsers(numberOfUsers)
+seedDatabase(seedParams)
   .catch((error) => {
-    console.error('Error seeding users:', error);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
+    console.error('Error seeding database:', error);
   });
