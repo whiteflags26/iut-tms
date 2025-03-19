@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { PrismaClient, User, Role } from '@prisma/client';
+import { PrismaClient, User, Role, Department } from '@prisma/client';
 import config from '../config/auth.config';
 
 const prisma = new PrismaClient();
@@ -12,6 +12,7 @@ export interface UserPayload {
   name: string;
   email: string;
   role: Role;
+  department: Department;
   designation: string;
 }
 
@@ -41,6 +42,7 @@ export const initializePassport = (): void => {
             email: true,
             role: true,
             designation: true,
+            department: true,
           },
         });
 
@@ -81,6 +83,25 @@ export const authorize = (...roles: Role[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
+      res.status(403).json({
+        message: `Access denied: ${req.user.role} role is not authorized for this resource`,
+      });
+      return; // Ensure the function exits after sending the response
+    }
+
+    next(); // Proceed to the next middleware or route handler
+  };
+};
+
+
+export const validateUserAccess = (...roles: Role[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return; // Ensure the function exits after sending the response
+    }
+    
+    if (!roles.includes(req.user.role) && req.user.id !== Number(req.params.id)) {
       res.status(403).json({
         message: `Access denied: ${req.user.role} role is not authorized for this resource`,
       });

@@ -1,4 +1,4 @@
-import { PrismaClient, User, Role } from '@prisma/client';
+import { PrismaClient, User, Role, Department } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../../config/auth.config';
@@ -12,6 +12,7 @@ interface UserInput {
   designation: string;
   contactNumber: string;
   role?: Role;
+  department?: Department; 
 }
 
 interface UserUpdateInput {
@@ -54,6 +55,7 @@ export const createUser = async (userData: UserInput): Promise<User> => {
       designation: userData.designation,
       contactNumber: userData.contactNumber,
       role: userData.role || 'USER',
+      department: userData.department || 'GENERAL', // Add department with a default value
     },
   });
 
@@ -86,6 +88,7 @@ export const getUserById = async (id: number): Promise<SafeUser> => {
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -110,6 +113,7 @@ export const updateUser = async (id: number, userData: UserUpdateInput): Promise
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -128,6 +132,7 @@ export const getAllUsers = async (): Promise<SafeUser[]> => {
       name: true,
       email: true,
       designation: true,
+      department: true,
       contactNumber: true,
       role: true,
       eWalletBalance: true,
@@ -141,4 +146,100 @@ export const generateToken = (id: number): string => {
   return jwt.sign({ id }, config.jwt.secret as jwt.Secret, {
     expiresIn: '5h', // Ensure this is a valid string or number
   });
+};
+
+interface SearchOptions {
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  role?: Role;
+  designation?: string;
+  department?: Department;
+}
+
+export const searchUsers = async (options: SearchOptions): Promise<SafeUser[]> => {
+  const { search, sortBy, sortOrder, role, designation, department } = options;
+
+  const users = await prisma.user.findMany({
+    where: {
+      AND: [
+        search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { designation: { contains: search, mode: 'insensitive' } },
+                { contactNumber: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {},
+        role ? { role } : {},
+        designation ? { designation } : {},
+        department ? { department } : {},
+      ],
+    },
+    orderBy: sortBy
+      ? {
+          [sortBy]: sortOrder || 'asc',
+        }
+      : undefined,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      designation: true,
+      department: true,
+      contactNumber: true,
+      role: true,
+      eWalletBalance: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return users;
+};
+
+export const changeUserPassword = async (
+  userId: number, 
+  newPassword: string
+): Promise<void> => {
+  // Hash the password before storing
+  const hashedPassword = await bcrypt.hash(newPassword, config.bcrypt.saltRounds);
+  
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hashedPassword },
+    select: { name: true },
+  });
+  
+  // Return void since we don't need to expose password-related fields
+};
+
+const isValidEnum = (value: string): value is Role => {
+  return Object.values(Role).includes(value as Role);
+};
+
+export const changeUserRole = async (id: number, userRole: Role): Promise<SafeUser> => {
+  if(!isValidEnum(userRole)) {
+    throw new Error('Invalid role');
+  }
+  const user = await prisma.user.update({
+    where: { id },
+    data: { role: userRole },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      designation: true,
+      department: true,
+      contactNumber: true,
+      role: true,
+      eWalletBalance: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return user;
 };
