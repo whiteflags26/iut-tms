@@ -61,6 +61,8 @@ export const getRequisitionById = async (id: number): Promise<Requisition> => {
           email: true,
           designation: true,
           contactNumber: true,
+          department: true,
+          role: true,
         },
       },
       approvals: {
@@ -72,6 +74,7 @@ export const getRequisitionById = async (id: number): Promise<Requisition> => {
               email: true,
               designation: true,
               role: true,
+              department: true,
             },
           },
         },
@@ -141,8 +144,6 @@ export const getAllRequisitions = async (
       department: userDepartment,
     };
   }
- console.log(userDepartment);
- console.log(userRole);
   
   return await prisma.requisition.findMany({
     where,
@@ -164,6 +165,7 @@ export const getAllRequisitions = async (
               id: true,
               name: true,
               role: true,
+              department: true,
             },
           },
         },
@@ -385,7 +387,7 @@ export const searchRequisitions = async (
           name: true,
           email: true,
           designation: true,
-          department: true, // Include department in the response
+          department: true,
         },
       },
       approvals: {
@@ -395,6 +397,7 @@ export const searchRequisitions = async (
               id: true,
               name: true,
               role: true,
+              department: true,
             },
           },
         },
