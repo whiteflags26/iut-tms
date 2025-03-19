@@ -1,4 +1,4 @@
-import { PrismaClient, User, Role } from '@prisma/client';
+import { PrismaClient, User, Role, Department } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../../config/auth.config';
@@ -12,6 +12,7 @@ interface UserInput {
   designation: string;
   contactNumber: string;
   role?: Role;
+  department?: Department; 
 }
 
 interface UserUpdateInput {
@@ -54,6 +55,7 @@ export const createUser = async (userData: UserInput): Promise<User> => {
       designation: userData.designation,
       contactNumber: userData.contactNumber,
       role: userData.role || 'USER',
+      department: userData.department || 'GENERAL', // Add department with a default value
     },
   });
 

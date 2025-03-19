@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as userService from './user.service';
 import { validationResult } from 'express-validator';
-import { Role } from '@prisma/client';
+import { Role, Department } from '@prisma/client';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -12,7 +12,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { name, email, password, designation, contactNumber, role } = req.body;
+    const { name, email, password, designation, contactNumber, role, department } = req.body;
 
     // Create user
     const user = await userService.createUser({
@@ -22,6 +22,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       designation,
       contactNumber,
       role: role as Role,
+      department: department as Department, // Add department
     });
 
     // Generate token
@@ -36,6 +37,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         role: user.role,
         designation: user.designation,
+        department: user.department, // Include department in the response
       },
       token,
     });
@@ -43,7 +45,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ message: error.message });
   }
 };
-
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
